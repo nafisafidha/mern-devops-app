@@ -4,7 +4,7 @@ pipeline {
 
     environment {
 
-        DOCKER_HUB = "irfaanpk"
+        DOCKER_HUB = "nafisafidha02"
 
         IMAGE_TAG = "latest"
 
