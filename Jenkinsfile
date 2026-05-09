@@ -72,7 +72,7 @@ pipeline {
                 sshagent(['ssh-creds']) {
 
                     sh """
-                    ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOY_SERVER '
+                    ssh -o StrictHostKeyChecking=no ubuntu@$34.205.74.182 '
 
                     cd /home/ubuntu/app
 
