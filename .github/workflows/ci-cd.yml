@@ -1,0 +1,110 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  APP_NAME: taskflow
+
+jobs:
+  # ── Test ───────────────────────────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install & test backend
+        working-directory: ./backend
+        run: |
+          npm ci
+          npm test
+
+      - name: Install & test frontend
+        working-directory: ./frontend
+        run: |
+          npm ci
+          CI=true npm test -- --watchAll=false
+
+  # ── Build & Push ───────────────────────────────────────────────────────────
+  build-push:
+    name: Build & Push to ECR
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        id: meta
+        run: echo "tag=${{ github.run_number }}-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build & push backend
+        run: |
+          docker build -t $ECR_REGISTRY/$APP_NAME-backend:${{ steps.meta.outputs.tag }} \
+                       -t $ECR_REGISTRY/$APP_NAME-backend:latest ./backend
+          docker push $ECR_REGISTRY/$APP_NAME-backend:${{ steps.meta.outputs.tag }}
+          docker push $ECR_REGISTRY/$APP_NAME-backend:latest
+
+      - name: Build & push frontend
+        run: |
+          docker build -t $ECR_REGISTRY/$APP_NAME-frontend:${{ steps.meta.outputs.tag }} \
+                       -t $ECR_REGISTRY/$APP_NAME-frontend:latest ./frontend
+          docker push $ECR_REGISTRY/$APP_NAME-frontend:${{ steps.meta.outputs.tag }}
+          docker push $ECR_REGISTRY/$APP_NAME-frontend:latest
+
+  # ── Deploy ─────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+    needs: build-push
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/taskflow
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+              docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+            cat > .env << EOF
+            BACKEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.APP_NAME }}-backend:${{ needs.build-push.outputs.image-tag }}
+            FRONTEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.APP_NAME }}-frontend:${{ needs.build-push.outputs.image-tag }}
+            MONGO_URI=${{ secrets.MONGO_URI }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            CLIENT_URL=${{ secrets.CLIENT_URL }}
+            EOF
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
