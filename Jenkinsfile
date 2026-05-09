@@ -8,7 +8,7 @@ pipeline {
 
         IMAGE_TAG = "latest"
 
-        DEPLOY_SERVER = "3.90.141.105"
+        DEPLOY_SERVER = "34.205.74.182"
     }
 
     stages {
@@ -27,11 +27,10 @@ pipeline {
             steps {
 
                 sh '''
-                docker build -t $DOCKER_HUB/input-frontend:$IMAGE_TAG ./input-frontend
+                docker build -t $DOCKER_HUB/frontend:$IMAGE_TAG ./frontend
 
-                docker build -t $DOCKER_HUB/results-frontend:$IMAGE_TAG ./results-frontend
+                docker build -t $DOCKER_HUB/backend:$IMAGE_TAG ./backend
 
-                docker build -t $DOCKER_HUB/worker:$IMAGE_TAG ./worker
                 '''
             }
         }
@@ -58,11 +57,10 @@ pipeline {
             steps {
 
                 sh '''
-                docker push $DOCKER_HUB/input-frontend:$IMAGE_TAG
+                docker push $DOCKER_HUB/frontend:$IMAGE_TAG
 
-                docker push $DOCKER_HUB/results-frontend:$IMAGE_TAG
+                docker push $DOCKER_HUB/backend:$IMAGE_TAG
 
-                docker push $DOCKER_HUB/worker:$IMAGE_TAG
                 '''
             }
         }
