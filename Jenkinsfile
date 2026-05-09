@@ -18,7 +18,7 @@ pipeline {
             steps {
 
                 git branch: 'main',
-                url: 'https://github.com/Irfaanpk/Docker-Compose-WordCounter.git'
+                url: 'https://github.com/nafisafidha/mern-devops-app.git'
             }
         }
 
