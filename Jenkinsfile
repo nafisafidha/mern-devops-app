@@ -1,3 +1,4 @@
+```groovy id="r5m8xk"
 pipeline {
 
     agent any
@@ -61,13 +62,13 @@ pipeline {
             }
         }
 
-      stage('Deploy To EC2 Using SSH') {
+        stage('Deploy To EC2 Using SSH') {
 
-    steps {
+            steps {
 
-        sshagent(['ssh-creds']) {
+                sshagent(['ssh-creds']) {
 
-            sh '''
+                    sh '''
 ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOY_SERVER << EOF
 
 docker pull nafisafidha02/frontend:latest
@@ -81,13 +82,17 @@ docker rm backend || true
 
 docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
 
-docker run -d --name backend -p 5000:5000 nafisafidha02/backend:latest
+docker run -d \
+--name backend \
+-p 5000:5000 \
+-e MONGO_URI="YOUR_MONGODB_URI" \
+nafisafidha02/backend:latest
 
 EOF
-            '''
+                    '''
+                }
+            }
         }
-    }
-}
     }
 
     post {
@@ -103,3 +108,4 @@ EOF
         }
     }
 }
+```
