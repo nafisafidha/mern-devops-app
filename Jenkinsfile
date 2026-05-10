@@ -77,8 +77,8 @@ docker pull nafisafidha02/backend:latest
 docker stop frontend || true
 docker stop backend || true
 
-docker rm frontend || true
-docker rm backend || true
+docker rm -f frontend || true
+docker rm -f backend || true
 
 docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
 
