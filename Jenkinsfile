@@ -5,9 +5,7 @@ pipeline {
     environment {
 
         DOCKER_HUB = "nafisafidha02"
-
         IMAGE_TAG = "latest"
-
         DEPLOY_SERVER = "54.210.164.179"
     }
 
@@ -30,7 +28,6 @@ pipeline {
                 docker build -t $DOCKER_HUB/frontend:$IMAGE_TAG ./frontend
 
                 docker build -t $DOCKER_HUB/backend:$IMAGE_TAG ./backend
-
                 '''
             }
         }
@@ -60,35 +57,38 @@ pipeline {
                 docker push $DOCKER_HUB/frontend:$IMAGE_TAG
 
                 docker push $DOCKER_HUB/backend:$IMAGE_TAG
-
                 '''
             }
         }
 
-       stage('Deploy To EC2 Using SSH') {
-    steps {
-        sshagent(['ssh-creds']) {
-            sh '''
-            ssh -o StrictHostKeyChecking=no ubuntu@54.210.164.179 << EOF
+        stage('Deploy To EC2 Using SSH') {
 
-            docker pull nafisafidha02/frontend:latest
-            docker pull nafisafidha02/backend:latest
+            steps {
 
-            docker stop frontend || true
-            docker stop backend || true
+                sshagent(['ssh-creds']) {
 
-            docker rm frontend || true
-            docker rm backend || true
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOY_SERVER << EOF
 
-            docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
+                    docker pull nafisafidha02/frontend:latest
+                    docker pull nafisafidha02/backend:latest
 
-            docker run -d --name backend -p 5000:5000 nafisafidha02/backend:latest
+                    docker stop frontend || true
+                    docker stop backend || true
 
-            EOF
-            '''
+                    docker rm frontend || true
+                    docker rm backend || true
+
+                    docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
+
+                    docker run -d --name backend -p 5000:5000 nafisafidha02/backend:latest
+
+                    EOF
+                    '''
+                }
+            }
         }
     }
-}
 
     post {
 
