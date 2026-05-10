@@ -8,7 +8,7 @@ pipeline {
 
         IMAGE_TAG = "latest"
 
-        DEPLOY_SERVER = "34.205.74.182"
+        DEPLOY_SERVER = "54.210.164.179"
     }
 
     stages {
@@ -72,7 +72,7 @@ pipeline {
                 sshagent(['ssh-creds']) {
 
                     sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@$34.205.74.182 '
+                    ssh -o StrictHostKeyChecking=no ubuntu@$54.210.164.179'
 
                     cd /home/ubuntu/app
 
