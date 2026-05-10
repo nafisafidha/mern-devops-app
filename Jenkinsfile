@@ -65,28 +65,30 @@ pipeline {
             }
         }
 
-        stage('Deploy To EC2 Using SSH') {
+       stage('Deploy To EC2 Using SSH') {
+    steps {
+        sshagent(['ssh-creds']) {
+            sh '''
+            ssh -o StrictHostKeyChecking=no ubuntu@54.210.164.179 << EOF
 
-            steps {
+            docker pull nafisafidha02/frontend:latest
+            docker pull nafisafidha02/backend:latest
 
-                sshagent(['ssh-creds']) {
+            docker stop frontend || true
+            docker stop backend || true
 
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@$54.210.164.179'
+            docker rm frontend || true
+            docker rm backend || true
 
-                    cd /home/ubuntu/app
+            docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
 
-                    docker compose pull
+            docker run -d --name backend -p 5000:5000 nafisafidha02/backend:latest
 
-                    docker compose down
-
-                    docker compose up -d
-                    '
-                    '''
-                }
-            }
+            EOF
+            '''
         }
     }
+}
 
     post {
 
