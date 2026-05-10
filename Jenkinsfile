@@ -1,4 +1,4 @@
-```groovy id="r5m8xk"
+
 pipeline {
 
     agent any
@@ -108,4 +108,4 @@ EOF
         }
     }
 }
-```
+
