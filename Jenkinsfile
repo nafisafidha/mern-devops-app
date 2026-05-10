@@ -85,7 +85,7 @@ docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
 docker run -d \
 --name backend \
 -p 5000:5000 \
--e MONGO_URI="mongodb+srv://nafisafidha22_db_user:Admin123@cluster0.07otaz5.mongodb.net/?appName=Cluster0" \
+-e MONGO_URI="mongodb+srv://nafisafidha22_db_user:Admin123@cluster0.07otaz5.mongodb.net/mernapp?retryWrites=true&w=majority&appName=Cluster0" \
 -e JWT_SECRET="mernprojectsecret" \
 nafisafidha02/backend:latest
 
