@@ -61,33 +61,33 @@ pipeline {
             }
         }
 
-        stage('Deploy To EC2 Using SSH') {
+      stage('Deploy To EC2 Using SSH') {
 
-            steps {
+    steps {
 
-                sshagent(['ssh-creds']) {
+        sshagent(['ssh-creds']) {
 
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOY_SERVER << EOF
+            sh '''
+ssh -o StrictHostKeyChecking=no ubuntu@$DEPLOY_SERVER << EOF
 
-                    docker pull nafisafidha02/frontend:latest
-                    docker pull nafisafidha02/backend:latest
+docker pull nafisafidha02/frontend:latest
+docker pull nafisafidha02/backend:latest
 
-                    docker stop frontend || true
-                    docker stop backend || true
+docker stop frontend || true
+docker stop backend || true
 
-                    docker rm frontend || true
-                    docker rm backend || true
+docker rm frontend || true
+docker rm backend || true
 
-                    docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
+docker run -d --name frontend -p 3000:80 nafisafidha02/frontend:latest
 
-                    docker run -d --name backend -p 5000:5000 nafisafidha02/backend:latest
+docker run -d --name backend -p 5000:5000 nafisafidha02/backend:latest
 
-                    EOF
-                    '''
-                }
-            }
+EOF
+            '''
         }
+    }
+}
     }
 
     post {
