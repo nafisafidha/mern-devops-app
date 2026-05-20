@@ -7,7 +7,7 @@ pipeline {
 
         DOCKER_HUB = "nafisafidha02"
         IMAGE_TAG = "latest"
-        DEPLOY_SERVER = "3.92.85.21"
+        DEPLOY_SERVER = "32.197.246.163"
     }
 
     stages {
